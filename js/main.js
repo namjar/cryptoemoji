@@ -118,16 +118,13 @@ async function encrypt() {
         combined.set(iv);
         combined.set(new Uint8Array(encryptedData), iv.length);
 
-        // 转换为Base64
-        let base64Str = btoa(String.fromCharCode(...combined));
-        console.log('原始Base64:', base64Str);
-        
-        // 转换为URL安全的Base64
-        base64Str = base64Str
+        // 转换为Base64并进行URL安全转换
+        let base64Str = btoa(String.fromCharCode(...combined))
             .replace(/\+/g, '-')
-            .replace(/\//g, '_')
-            .replace(/=/g, '');
-        console.log('URL安全的Base64:', base64Str);
+            .replace(/\//g, '_');
+            
+        console.log('转换后的URL安全Base64:', base64Str);
+        console.log('包含的字符:', [...new Set(base64Str)].join(''));
         
         // 转换为emoji
         const emojiText = textToEmoji(base64Str);
@@ -136,6 +133,7 @@ async function encrypt() {
         resultElement.textContent = emojiText;
     } catch (error) {
         console.error('加密错误:', error);
+        console.error('错误堆栈:', error.stack);
         alert('加密失败: ' + error.message);
     }
 }
@@ -154,16 +152,19 @@ async function decrypt() {
 
         // 转换emoji为Base64
         let base64Str = emojiToText(emojiText);
+        console.log('从emoji转换回的Base64:', base64Str);
         
         // 还原标准Base64编码
         base64Str = base64Str
             .replace(/-/g, '+')
             .replace(/_/g, '/');
-        
+            
         // 添加填充
         while (base64Str.length % 4) {
             base64Str += '=';
         }
+        
+        console.log('还原后的标准Base64:', base64Str);
         
         // 解码Base64
         const combined = new Uint8Array(
