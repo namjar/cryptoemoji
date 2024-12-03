@@ -1,5 +1,5 @@
 // Base64字符映射表
-const BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_=";
+const BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 
 // Emoji映射表
 const EMOJI_LIST = ["😀", "😃", "😄", "😁", "😅", "😂", "🤣", "😊", "😇", "🙂", 
@@ -14,8 +14,10 @@ const EMOJI_LIST = ["😀", "😃", "😄", "😁", "😅", "😂", "🤣", "�
 const CHAR_TO_EMOJI = {};
 const EMOJI_TO_CHAR = {};
 BASE64_CHARS.split('').forEach((char, i) => {
-    CHAR_TO_EMOJI[char] = EMOJI_LIST[i];
-    EMOJI_TO_CHAR[EMOJI_LIST[i]] = char;
+    if (i < EMOJI_LIST.length) {
+        CHAR_TO_EMOJI[char] = EMOJI_LIST[i];
+        EMOJI_TO_CHAR[EMOJI_LIST[i]] = char;
+    }
 });
 
 // 生成加密密钥
@@ -38,6 +40,8 @@ function textToEmoji(base64Str) {
         if (char in CHAR_TO_EMOJI) {
             result.push(CHAR_TO_EMOJI[char]);
         } else {
+            console.error('无效字符:', char, '在位置:', base64Str.indexOf(char));
+            console.log('完整的base64字符串:', base64Str);
             throw new Error(`无效的字符: ${char}`);
         }
     }
@@ -98,7 +102,7 @@ async function encrypt() {
         combined.set(iv);
         combined.set(new Uint8Array(encryptedData), iv.length);
 
-        // 转换为Base64
+        // 转换为Base64，使用标准Base64编码
         const base64Str = btoa(String.fromCharCode(...combined));
         
         // 转换为emoji
