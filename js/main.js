@@ -13,20 +13,25 @@ const EMOJI_LIST = ["😀", "😃", "😄", "😁", "😅", "😂", "🤣", "�
 // 创建映射字典
 const CHAR_TO_EMOJI = {};
 const EMOJI_TO_CHAR = {};
-BASE64_CHARS.split('').forEach((char, i) => {
-    if (i < EMOJI_LIST.length) {
-        CHAR_TO_EMOJI[char] = EMOJI_LIST[i];
-        EMOJI_TO_CHAR[EMOJI_LIST[i]] = char;
-    }
-});
 
-// 生成加密密钥
-async function generateKey(password) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password);
-    const hash = await crypto.subtle.digest('SHA-256', data);
-    return hash;
+// 初始化映射
+function initializeMappings() {
+    console.log('初始化字符映射...');
+    console.log('Base64字符数:', BASE64_CHARS.length);
+    console.log('Emoji数量:', EMOJI_LIST.length);
+    
+    BASE64_CHARS.split('').forEach((char, i) => {
+        if (i < EMOJI_LIST.length) {
+            CHAR_TO_EMOJI[char] = EMOJI_LIST[i];
+            EMOJI_TO_CHAR[EMOJI_LIST[i]] = char;
+        }
+    });
+    
+    console.log('映射完成，字符映射数:', Object.keys(CHAR_TO_EMOJI).length);
 }
+
+// 立即初始化映射
+initializeMappings();
 
 // 标准化emoji
 function normalizeEmoji(emoji) {
@@ -35,13 +40,17 @@ function normalizeEmoji(emoji) {
 
 // 文本转emoji
 function textToEmoji(base64Str) {
+    console.log('转换前的base64字符串:', base64Str);
+    console.log('包含的字符:', [...new Set(base64Str)].join(''));
+    
     const result = [];
     for (const char of base64Str) {
         if (char in CHAR_TO_EMOJI) {
             result.push(CHAR_TO_EMOJI[char]);
         } else {
-            console.error('无效字符:', char, '在位置:', base64Str.indexOf(char));
-            console.log('完整的base64字符串:', base64Str);
+            console.error('发现无效字符:', char);
+            console.error('字符位置:', base64Str.indexOf(char));
+            console.error('可用的字符映射:', Object.keys(CHAR_TO_EMOJI).join(''));
             throw new Error(`无效的字符: ${char}`);
         }
     }
@@ -60,6 +69,14 @@ function emojiToText(emojiText) {
         }
     }
     return result.join('');
+}
+
+// 生成加密密钥
+async function generateKey(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hash = await crypto.subtle.digest('SHA-256', data);
+    return hash;
 }
 
 // 加密函数
@@ -90,11 +107,10 @@ async function encrypt() {
         );
 
         // 加密数据
-        const encoder = new TextEncoder();
         const encryptedData = await crypto.subtle.encrypt(
             { name: 'AES-GCM', iv },
             cryptoKey,
-            encoder.encode(text)
+            new TextEncoder().encode(text)
         );
 
         // 组合IV和加密数据
@@ -102,14 +118,20 @@ async function encrypt() {
         combined.set(iv);
         combined.set(new Uint8Array(encryptedData), iv.length);
 
-        // 转换为Base64，使用URL安全的Base64编码
-        const base64Str = btoa(String.fromCharCode(...combined))
+        // 转换为Base64
+        let base64Str = btoa(String.fromCharCode(...combined));
+        console.log('原始Base64:', base64Str);
+        
+        // 转换为URL安全的Base64
+        base64Str = base64Str
             .replace(/\+/g, '-')
             .replace(/\//g, '_')
             .replace(/=/g, '');
+        console.log('URL安全的Base64:', base64Str);
         
         // 转换为emoji
         const emojiText = textToEmoji(base64Str);
+        console.log('最终的emoji文本:', emojiText);
         
         resultElement.textContent = emojiText;
     } catch (error) {
