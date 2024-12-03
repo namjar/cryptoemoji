@@ -1,14 +1,14 @@
-// Base64字符映射表
-const BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+// Base64字符映射表 (使用URL安全的Base64变体)
+const BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_=";
 
-// Emoji映射表
+// Emoji映射表 (确保有足够的emoji覆盖所有Base64字符)
 const EMOJI_LIST = ["😀", "😃", "😄", "😁", "😅", "😂", "🤣", "😊", "😇", "🙂", 
                    "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "😚", "😋", 
                    "😛", "😜", "😝", "😞", "😟", "😠", "😡", "🤬", "🤯", "😳", 
                    "🥵", "🥶", "😱", "😨", "😰", "😥", "😓", "😪", "😴", "🤤", 
                    "😷", "🤒", "🤕", "🤢", "🤮", "🤧", "🥳", "🥺", "🤠", "🤡", 
                    "🤥", "🤫", "🤭", "🧐", "🤓", "😈", "👿", "👹", "👺", "💀", 
-                   "☠", "👻", "👽", "👾", "🤖", "🎃", "🎄", "🎅"];
+                   "☠", "👻", "👽", "👾", "🤖", "🎃", "🎄", "🎅", "👻", "🕷️", "💻"];
 
 // 创建映射字典
 const CHAR_TO_EMOJI = {};
@@ -102,8 +102,11 @@ async function encrypt() {
         combined.set(iv);
         combined.set(new Uint8Array(encryptedData), iv.length);
 
-        // 转换为Base64，使用标准Base64编码
-        const base64Str = btoa(String.fromCharCode(...combined));
+        // 转换为Base64，使用URL安全的Base64编码
+        const base64Str = btoa(String.fromCharCode(...combined))
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_')
+            .replace(/=/g, '');
         
         // 转换为emoji
         const emojiText = textToEmoji(base64Str);
@@ -128,7 +131,17 @@ async function decrypt() {
         }
 
         // 转换emoji为Base64
-        const base64Str = emojiToText(emojiText);
+        let base64Str = emojiToText(emojiText);
+        
+        // 还原标准Base64编码
+        base64Str = base64Str
+            .replace(/-/g, '+')
+            .replace(/_/g, '/');
+        
+        // 添加填充
+        while (base64Str.length % 4) {
+            base64Str += '=';
+        }
         
         // 解码Base64
         const combined = new Uint8Array(
