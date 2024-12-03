@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加密/解密工具</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="data:,">
+    <!-- 添加 Buffer polyfill -->
+    <script src="https://bundle.run/buffer@6.0.3"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('encrypt')">加密</button>
+            <button class="tab-btn" onclick="showTab('decrypt')">解密</button>
+        </div>
+        <div id="encrypt" class="tab-content active">
+            <h2>加密</h2>
+            <textarea id="mnemonic" placeholder="请输入您的加密内容"></textarea>
+            <input type="password" id="encrypt-password" placeholder="请输入加密密码">
+            <button onclick="encrypt()">加密</button>
+            <div id="encrypt-result" class="result"></div>
+            <button onclick="copyText('encrypt-result')" class="copy-btn">复制结果</button>
+        </div>
+        <div id="decrypt" class="tab-content">
+            <h2>解密</h2>
+            <textarea id="emoji-input" placeholder="请输入加密后的emoji"></textarea>
+            <input type="password" id="decrypt-password" placeholder="请输入解密密码">
+            <button onclick="decrypt()">解密</button>
+            <div id="decrypt-result" class="result"></div>
+            <button onclick="copyText('decrypt-result')" class="copy-btn">复制结果</button>
+        </div>
+    </div>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
